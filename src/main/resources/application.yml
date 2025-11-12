@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: demo-service
+  profiles:
+    active: development
+
+jwt:
+  secret: mi_super_clave_secreta_segura_123456789
