@@ -17,4 +17,5 @@ public interface RoleService {
     void assignPermissionsToRole(Long roleId, Set<Long> permissionIds);
     void removePermissionsFromRole(Long roleId, Set<Long> permissionIds);
 
+    List<Role> listarRolesConPermisos();
 }

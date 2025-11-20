@@ -66,4 +66,9 @@ public class RoleController {
         roleService.removePermissionsFromRole(id, permissionIds);
         return ResponseEntity.ok("Permisos eliminados correctamente del rol con ID " + id);
     }
+
+    @GetMapping("/listar-permisos")
+    public List<Role> listarRolesConPermisos() {
+        return roleService.listarRolesConPermisos();
+    }
 }

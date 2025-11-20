@@ -19,13 +19,14 @@ public class CompanyUserController {
     private CompanyUserService companyUserService;
 
     @GetMapping
-    public ResponseEntity<List<CompanyUser>> getAll() {
-        return ResponseEntity.ok(companyUserService.findAll());
+    public ResponseEntity<List<CompanyUserResponseDto>> getAll() {
+        return ResponseEntity.ok(companyUserService.getAllDto());
     }
 
+    // ✅ Obtener usuarios por ID de empresa (también como DTO)
     @GetMapping("/company/{companyId}")
-    public ResponseEntity<List<CompanyUser>> getByCompany(@PathVariable Long companyId) {
-        return ResponseEntity.ok(companyUserService.findByCompany(companyId));
+    public ResponseEntity<List<CompanyUserResponseDto>> getByCompany(@PathVariable Long companyId) {
+        return ResponseEntity.ok(companyUserService.getByCompanyDto(companyId));
     }
 
     @PostMapping
@@ -38,5 +39,20 @@ public class CompanyUserController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         companyUserService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // 🔥 NUEVO ENDPOINT
+    @PutMapping("/{id}/assign-supervisor/{supervisorId}")
+    public CompanyUserResponseDto assignSupervisor(
+            @PathVariable Long id,
+            @PathVariable Long supervisorId
+    ) {
+        return companyUserService.assignSupervisor(id, supervisorId);
+    }
+
+    // 🔥 Para poner supervisor en null
+    @PutMapping("/{id}/clear-supervisor")
+    public CompanyUserResponseDto clearSupervisor(@PathVariable Long id) {
+        return companyUserService.assignSupervisor(id, null);
     }
 }

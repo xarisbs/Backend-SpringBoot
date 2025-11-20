@@ -31,4 +31,13 @@ public interface AuthUserService {
 
     void assignRolesToUser(Long userId, Set<Long> roleIds);
     void removeRolesFromUser(Long userId, Set<Long> roleIds);
+
+    // 🔹 Nuevo: listar usuarios por 1 rol
+    List<AuthUser> findUsersByRoleName(String roleName);
+
+    // 🔹 Opcional: listar por múltiples roles
+    List<AuthUser> findUsersByRoleIds(Set<Long> roleIds);
+    List<AuthUser> findUsersWithoutEstudiante();
+
+    List<AuthUser> findStudents();
 }

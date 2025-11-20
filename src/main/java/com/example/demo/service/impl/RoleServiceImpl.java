@@ -83,4 +83,9 @@ public class RoleServiceImpl implements RoleService {
         role.getPermissions().removeAll(permissionsToRemove);
         roleRepository.save(role);
     }
+
+    @Override
+    public List<Role> listarRolesConPermisos() {
+        return roleRepository.findAllWithPermissions();
+    }
 }

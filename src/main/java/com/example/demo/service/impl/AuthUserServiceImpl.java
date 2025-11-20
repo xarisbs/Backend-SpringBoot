@@ -70,7 +70,7 @@ public class AuthUserServiceImpl implements AuthUserService {
         AuthUser existingUser = authRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
 
-        // Actualizar solo los campos modificables
+        // Actualizar campos básicos
         existingUser.setUserName(authUserDto.getUserName());
         existingUser.setNombres(authUserDto.getNombres());
         existingUser.setApellidos(authUserDto.getApellidos());
@@ -78,9 +78,15 @@ public class AuthUserServiceImpl implements AuthUserService {
         existingUser.setDni(authUserDto.getDni());
         existingUser.setCorreo(authUserDto.getCorreo());
 
-        // Si se envía nueva contraseña, la actualiza
-        if (authUserDto.getPassword() != null && !authUserDto.getPassword().isEmpty()) {
-            existingUser.setPassword(passwordEncoder.encode(authUserDto.getPassword()));
+        // Verificar si el password realmente cambió
+        String newPassword = authUserDto.getPassword();
+
+        if (newPassword != null && !newPassword.isEmpty()) {
+            // Si la contraseña enviada NO coincide con la ya guardada (hash)
+            if (!passwordEncoder.matches(newPassword, existingUser.getPassword())) {
+                existingUser.setPassword(passwordEncoder.encode(newPassword));
+            }
+            // Si coincide, no se hace nada (ya está cifrada y correcta)
         }
 
         return authRepository.save(existingUser);
@@ -118,6 +124,12 @@ public class AuthUserServiceImpl implements AuthUserService {
                 .map(role -> role.getName())
                 .collect(java.util.stream.Collectors.toSet());
 
+        // Extraer permisos desde cada rol
+        Set<String> permisos = user.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .map(p -> p.getName())
+                .collect(Collectors.toSet());
+
         return new LoginResponseDto(
                 token,
                 user.getId(),
@@ -125,7 +137,8 @@ public class AuthUserServiceImpl implements AuthUserService {
                 user.getNombres(),
                 user.getApellidos(),
                 user.getCorreo(),
-                roles
+                roles,
+                permisos
         );
     }
 
@@ -177,5 +190,25 @@ public class AuthUserServiceImpl implements AuthUserService {
 
         user.getRoles().removeAll(rolesToRemove); // 👈 elimina los roles indicados
         authRepository.save(user);
+    }
+
+    @Override
+    public List<AuthUser> findUsersByRoleName(String roleName) {
+        return authRepository.findByRoles_Name(roleName);
+    }
+
+    @Override
+    public List<AuthUser> findUsersByRoleIds(Set<Long> roleIds) {
+        return authRepository.findDistinctByRoles_IdIn(roleIds);
+    }
+
+    @Override
+    public List<AuthUser> findUsersWithoutEstudiante() {
+        return authRepository.findUsersWithoutRole("ROLE_ESTUDIANTE");
+    }
+
+    @Override
+    public List<AuthUser> findStudents() {
+        return authRepository.findByRoles_Name("ROLE_ESTUDIANTE");
     }
 }

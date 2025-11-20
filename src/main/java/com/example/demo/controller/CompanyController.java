@@ -1,5 +1,7 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.CompanyRegistrationRequestDto;
+import com.example.demo.dto.CompanyRegistrationResponseDto;
 import com.example.demo.entity.Company;
 import com.example.demo.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,5 +43,10 @@ public class CompanyController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         companyService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/register/user-company")
+    public ResponseEntity<CompanyRegistrationResponseDto> register(@RequestBody CompanyRegistrationRequestDto dto) {
+        return ResponseEntity.ok(companyService.register(dto));
     }
 }

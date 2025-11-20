@@ -16,4 +16,5 @@ public class LoginResponseDto {
     private String apellidos;
     private String correo;
     private Set<String> roles;
+    private Set<String> permissions;
 }

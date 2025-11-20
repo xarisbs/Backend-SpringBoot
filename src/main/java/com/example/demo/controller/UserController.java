@@ -52,11 +52,16 @@ public class UserController {
         return ResponseEntity.ok(actualizado);
     }
 
-    // ELIMINAR USUARIO
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@RequestHeader("Authorization") String token, @PathVariable Integer id) {
+    @DeleteMapping("/eliminar-user-perfil/{id}")
+    public ResponseEntity<Void> eliminarUserPerfil(@RequestHeader("Authorization") String token, @PathVariable Integer id) {
         String cleanToken = token.replace("Bearer ", "");
         authUserService.logout(cleanToken);
+        authUserService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/eliminar-user/{id}")
+    public ResponseEntity<Void> eliminarUser(@RequestHeader("Authorization") String token, @PathVariable Integer id) {
         authUserService.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -81,5 +86,34 @@ public class UserController {
         Set<Long> roleIds = request.get("roleIds");
         authUserService.removeRolesFromUser(id, roleIds);
         return ResponseEntity.ok("Roles eliminados correctamente del usuario con ID " + id);
+    }
+
+    // ✔ Listar usuarios por nombre de rol
+    @GetMapping("/by-role/{roleName}")
+    public ResponseEntity<List<AuthUser>> listarPorRol(@PathVariable String roleName) {
+        List<AuthUser> users = authUserService.findUsersByRoleName(roleName);
+        return ResponseEntity.ok(users);
+    }
+
+    // ✔ Listar usuarios por múltiples roles (IDs)
+    @PostMapping("/by-roles")
+    public ResponseEntity<List<AuthUser>> listarPorRoles(@RequestBody Map<String, Set<Long>> request) {
+        Set<Long> roleIds = request.get("roleIds");
+        List<AuthUser> users = authUserService.findUsersByRoleIds(roleIds);
+        return ResponseEntity.ok(users);
+    }
+
+    // ✔ Listar todos los usuarios excepto los que tienen ROLE_ESTUDIANTE
+    @GetMapping("/without-estudiante")
+    public ResponseEntity<List<AuthUser>> listarSinEstudiantes() {
+        List<AuthUser> users = authUserService.findUsersWithoutEstudiante();
+        return ResponseEntity.ok(users);
+    }
+
+    // ✔ Listar todos los usuarios que son estudiantes
+    @GetMapping("/estudiantes")
+    public ResponseEntity<List<AuthUser>> listarEstudiantes() {
+        List<AuthUser> users = authUserService.findStudents();
+        return ResponseEntity.ok(users);
     }
 }

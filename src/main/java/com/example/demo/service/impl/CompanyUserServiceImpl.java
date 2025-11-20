@@ -1,9 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dto.CompanyUserRequestDto;
-import com.example.demo.dto.CompanyUserResponseDto;
-import com.example.demo.dto.SimpleCompanyDto;
-import com.example.demo.dto.SimpleUserDto;
+import com.example.demo.dto.*;
 import com.example.demo.entity.AuthUser;
 import com.example.demo.entity.Company;
 import com.example.demo.entity.CompanyUser;
@@ -53,36 +50,6 @@ public class CompanyUserServiceImpl implements CompanyUserService {
         companyUserRepository.deleteById(id);
     }
 
-    private CompanyUserResponseDto mapToResponseDto(CompanyUser companyUser) {
-        SimpleUserDto userDto = new SimpleUserDto(
-                (long) companyUser.getAuthUser().getId(),
-                companyUser.getAuthUser().getNombres(),
-                companyUser.getAuthUser().getApellidos()
-        );
-
-        SimpleCompanyDto companyDto = new SimpleCompanyDto(
-                companyUser.getCompany().getId(),
-                companyUser.getCompany().getRazonSocial(),
-                companyUser.getCompany().getRuc()
-        );
-
-        SimpleUserDto supervisorDto = null;
-        if (companyUser.getSupervisor() != null) {
-            supervisorDto = new SimpleUserDto(
-                    (long) companyUser.getSupervisor().getId(),
-                    companyUser.getSupervisor().getNombres(),
-                    companyUser.getSupervisor().getApellidos()
-            );
-        }
-
-        return new CompanyUserResponseDto(
-                companyUser.getId(),
-                userDto,
-                companyDto,
-                supervisorDto
-        );
-    }
-
     @Override
     public CompanyUserResponseDto create(CompanyUserRequestDto dto) {
         // Buscar entidades por ID
@@ -93,7 +60,8 @@ public class CompanyUserServiceImpl implements CompanyUserService {
                 .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
 
         AuthUser supervisor = null;
-        if (dto.getSupervisorId() != null) {
+
+        if (dto.getSupervisorId() != null && dto.getSupervisorId() > 0) {
             supervisor = authUserRepository.findById(dto.getSupervisorId().intValue())
                     .orElseThrow(() -> new RuntimeException("Supervisor no encontrado"));
         }
@@ -108,5 +76,86 @@ public class CompanyUserServiceImpl implements CompanyUserService {
 
         // Retornar DTO de respuesta limpio
         return mapToResponseDto(companyUser);
+    }
+
+    @Override
+    public CompanyUserResponseDto assignSupervisor(Long companyUserId, Long supervisorId) {
+
+        CompanyUser companyUser = companyUserRepository.findById(companyUserId)
+                .orElseThrow(() -> new RuntimeException("CompanyUser no encontrado"));
+
+        // Supervisor puede ser null (para limpiar supervisor)
+        AuthUser supervisor = null;
+        if (supervisorId != null && supervisorId > 0) {
+            supervisor = authUserRepository.findById(supervisorId.intValue())
+                    .orElseThrow(() -> new RuntimeException("Supervisor no encontrado"));
+        }
+
+        companyUser.setSupervisor(supervisor);
+        companyUserRepository.save(companyUser);
+
+        return mapToResponseDto(companyUser);
+    }
+
+    // -------------------------------
+    //      MAPPER DTO → RESPONSE
+    // -------------------------------
+    private CompanyUserResponseDto mapToResponseDto(CompanyUser cu) {
+
+        SimpleUserDto userDto = new SimpleUserDto(
+                (long) cu.getAuthUser().getId(),
+                cu.getAuthUser().getNombres(),
+                cu.getAuthUser().getApellidos()
+        );
+
+        SimpleCompanyDto companyDto = new SimpleCompanyDto(
+                cu.getCompany().getId(),
+                cu.getCompany().getRazonSocial(),
+                cu.getCompany().getRuc()
+        );
+
+        SimpleUserDto supervisorDto = null;
+        if (cu.getSupervisor() != null) {
+            supervisorDto = new SimpleUserDto(
+                    (long) cu.getSupervisor().getId(),
+                    cu.getSupervisor().getNombres(),
+                    cu.getSupervisor().getApellidos()
+            );
+        }
+
+        return new CompanyUserResponseDto(
+                cu.getId(),
+                userDto,
+                companyDto,
+                supervisorDto
+        );
+    }
+
+    // -------------------------------
+    //      DTO METHODS
+    // -------------------------------
+    @Override
+    public List<CompanyUserResponseDto> getAllDto() {
+        return companyUserRepository.findAll()
+                .stream()
+                .map(this::mapToResponseDto)
+                .toList();
+    }
+
+    @Override
+    public List<CompanyUserResponseDto> findByCompanyDto(Long companyId) {
+        return companyUserRepository.findByCompanyId(companyId)
+                .stream()
+                .map(this::mapToResponseDto)
+                .toList();
+    }
+
+    @Override
+    public List<CompanyUserResponseDto> getByCompanyDto(Long companyId) {
+
+        return companyUserRepository.findByCompanyId(companyId)
+                .stream()
+                .map(this::mapToResponseDto)
+                .toList();
     }
 }
