@@ -51,6 +51,22 @@ public class AuthUserController {
         }
     }
 
+    @PostMapping("/student/login")
+    public ResponseEntity<LoginResponseDto> studentLogin(@RequestBody AuthUserDto authUserDto) {
+        try {
+            LoginResponseDto loginResponse = authUserService.studentLogin(authUserDto);
+            return ResponseEntity.ok(loginResponse);
+        } catch (RuntimeException e) {
+            // Si hay error en usuario, contraseña o rol
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(null);
+        } catch (Exception e) {
+            // Por si ocurre un error inesperado
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+    }
+
     @DeleteMapping("/logout")
     public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
         authUserService.logout(token);
